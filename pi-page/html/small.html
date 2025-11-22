@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>功能菜单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        body {
+            background: #ffffff;
+            width: 100vw;
+            height: 100vh;
+            color: #333;
+            overflow: hidden;
+        }
+        
+        .watch-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #4a00e0;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .menu-scroll-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .menu-container {
+            padding: 10px;
+            height: 100%;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .menu-item {
+            padding: 14px;
+            margin-bottom: 8px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .menu-item.selected {
+            background-color: #4a00e0;
+            color: white;
+            transform: scale(1.02);
+        }
+        
+        .menu-item.has-submenu::after {
+            content: ">";
+            font-weight: bold;
+        }
+        
+        .menu-item.selected.has-submenu::after {
+            color: white;
+        }
+        
+        .submenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .submenu.active {
+            transform: translateX(0);
+        }
+        
+        .submenu-content {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            cursor: pointer;
+            color: #4a00e0;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #eee;
+            flex-shrink: 0;
+        }
+        
+        .back-button::before {
+            content: "<";
+            margin-right: 6px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            padding: 8px 12px;
+            background-color: #f0f0f0;
+            border-top: 1px solid #ddd;
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .key-hint {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 4px;
+        }
+        
+        .key {
+            background-color: #e0e0e0;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        
+        /* 等待框样式 */
+        .waiting-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .waiting-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .waiting-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 85%;
+            max-width: 200px;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+        
+        .waiting-overlay.active .waiting-box {
+            transform: scale(1);
+        }
+        
+        .waiting-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 10px;
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #4a00e0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .waiting-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .waiting-timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4a00e0;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .waiting-message {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        .cancel-button {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .cancel-button:active {
+            background-color: #e0e0e0;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 小屏幕优化 */
+        @media (max-height: 480px) {
+            .header {
+                padding: 8px;
+                font-size: 14px;
+            }
+            
+            .menu-item {
+                padding: 10px;
+                margin-bottom: 6px;
+                font-size: 13px;
+            }
+            
+            .footer {
+                padding: 6px 10px;
+                font-size: 9px;
+            }
+            
+            .waiting-box {
+                padding: 15px;
+            }
+            
+            .waiting-timer {
+                font-size: 18px;
+            }
+        }
+        
+        @media (max-height: 320px) {
+            .header {
+                padding: 6px;
+                font-size: 13px;
+            }
+            
+            .menu-item {
+                padding: 8px;
+                margin-bottom: 4px;
+                font-size: 12px;
+            }
+            
+            .footer {
+                padding: 4px 8px;
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="watch-container">
+        <div class="header">功能菜单</div>
+        
+        <div class="menu-scroll-container">
+            <div class="menu-container" id="mainMenu">
+                <div class="menu-item has-submenu" data-target="idiom-stories">成语故事</div>
+                <div class="menu-item has-submenu" data-target="children-songs">儿歌</div>
+                <div class="menu-item" data-target="time">时间</div>
+                <div class="menu-item" data-target="weather">天气</div>
+            </div>
+            
+            <div class="submenu" id="idiom-stories-submenu">
+                <div class="back-button">返回主菜单</div>
+                <div class="submenu-content">
+                    <div class="menu-item">守株待兔</div>
+                    <div class="menu-item">画蛇添足</div>
+                    <div class="menu-item">井底之蛙</div>
+                    <div class="menu-item">狐假虎威</div>
+                    <div class="menu-item">对牛弹琴</div>
+                    <div class="menu-item">亡羊补牢</div>
+                    <div class="menu-item">掩耳盗铃</div>
+                    <div class="menu-item">刻舟求剑</div>
+                    <div class="menu-item">拔苗助长</div>
+                    <div class="menu-item">自相矛盾</div>
+                </div>
+            </div>
+            
+            <div class="submenu" id="children-songs-submenu">
+                <div class="back-button">返回主菜单</div>
+                <div class="submenu-content">
+                    <div class="menu-item">小星星</div>
+                    <div class="menu-item">两只老虎</div>
+                    <div class="menu-item">小兔子乖乖</div>
+                    <div class="menu-item">拔萝卜</div>
+                    <div class="menu-item">找朋友</div>
+                    <div class="menu-item">小毛驴</div>
+                    <div class="menu-item">蜗牛与黄鹂鸟</div>
+                    <div class="menu-item">数鸭子</div>
+                    <div class="menu-item">卖报歌</div>
+                    <div class="menu-item">春天在哪里</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div>使用方向键选择，Enter键确认</div>
+            <div class="key-hint">
+                <span class="key">↑</span>
+                <span class="key">↓</span>
+                <span class="key">Enter</span>
+                <span class="key">Esc</span>
+            </div>
+        </div>
+        
+        <!-- 等待框 -->
+        <div class="waiting-overlay" id="waitingOverlay">
+            <div class="waiting-box">
+                <div class="waiting-icon"></div>
+                <div class="waiting-title">加载中...</div>
+                <div class="waiting-timer" id="waitingTimer">01:00</div>
+                <div class="waiting-message" id="waitingMessage">正在准备内容，请稍候</div>
+                <button class="cancel-button" id="cancelButton">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取菜单元素
+            const mainMenu = document.getElementById('mainMenu');
+            const menuItems = document.querySelectorAll('.menu-item');
+            const submenus = document.querySelectorAll('.submenu');
+            const backButtons = document.querySelectorAll('.back-button');
+            const waitingOverlay = document.getElementById('waitingOverlay');
+            const waitingTimer = document.getElementById('waitingTimer');
+            const waitingMessage = document.getElementById('waitingMessage');
+            const cancelButton = document.getElementById('cancelButton');
+            
+            let currentMenu = mainMenu;
+            let selectedIndex = 0;
+            let menuStack = [mainMenu];
+            let countdownInterval = null;
+            let countdownSeconds = 60; // 1分钟倒计时
+
+            // 初始化菜单
+            updateSelection();
+            
+            // 键盘事件监听
+            document.addEventListener('keydown', function(e) {
+                // 如果等待框显示，只允许取消操作
+                if (waitingOverlay.classList.contains('active')) {
+                    if (e.key === 'Escape') {
+                        hideWaitingBox();
+                    }
+                    return;
+                }
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        moveSelection(-1);
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        moveSelection(1);
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        selectItem();
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        goBack();
+                        break;
+                }
+            });
+            
+            // 移动选择
+            function moveSelection(direction) {
+                const items = getCurrentMenuItems();
+                if (items.length === 0) return;
+                
+                selectedIndex = (selectedIndex + direction + items.length) % items.length;
+                updateSelection();
+            }
+            
+            // 获取当前菜单项
+            function getCurrentMenuItems() {
+                return currentMenu.querySelectorAll('.menu-item:not(.back-button)');
+            }
+            
+            // 更新选择状态
+            function updateSelection() {
+                const items = getCurrentMenuItems();
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.classList.add('selected');
+                        // 滚动到可见区域
+                        scrollToItem(item);
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+            
+            // 滚动到选中项
+            function scrollToItem(item) {
+                let container;
+                
+                // 根据当前菜单类型选择正确的容器
+                if (currentMenu.classList.contains('submenu')) {
+                    container = currentMenu.querySelector('.submenu-content');
+                } else {
+                    container = currentMenu;
+                }
+                
+                if (!container) return;
+                
+                const itemRect = item.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                if (itemRect.top < containerRect.top) {
+                    // 项目在容器上方
+                    container.scrollTop -= (containerRect.top - itemRect.top + 10);
+                } else if (itemRect.bottom > containerRect.bottom) {
+                    // 项目在容器下方
+                    container.scrollTop += (itemRect.bottom - containerRect.bottom + 10);
+                }
+            }
+            
+            // 选择项目
+            function selectItem() {
+                const items = getCurrentMenuItems();
+                const selectedItem = items[selectedIndex];
+                
+                if (!selectedItem) return;
+                
+                // 检查是否有子菜单
+                if (selectedItem.classList.contains('has-submenu')) {
+                    const target = selectedItem.getAttribute('data-target');
+                    const submenu = document.getElementById(`${target}-submenu`);
+                    
+                    if (submenu) {
+                        // 切换到子菜单
+                        switchMenu(submenu);
+                    }
+                } else {
+                    // 显示等待框
+                    showWaitingBox(selectedItem.textContent);
+                }
+            }
+            
+            // 显示等待框
+            function showWaitingBox(selectedItem) {
+                // 更新等待消息
+                waitingMessage.textContent = `正在加载 ${selectedItem}，请稍候`;
+                
+                // 重置倒计时
+                countdownSeconds = 60;
+                updateTimerDisplay();
+                
+                // 显示等待框
+                waitingOverlay.classList.add('active');
+                
+                // 开始倒计时
+                countdownInterval = setInterval(function() {
+                    countdownSeconds--;
+                    updateTimerDisplay();
+                    
+                    if (countdownSeconds <= 0) {
+                        clearInterval(countdownInterval);
+                        // 倒计时结束，关闭等待框
+                        hideWaitingBox();
+                        alert(`${selectedItem} 加载完成！`);
+                    }
+                }, 1000);
+            }
+            
+            // 更新计时器显示
+            function updateTimerDisplay() {
+                const minutes = Math.floor(countdownSeconds / 60);
+                const seconds = countdownSeconds % 60;
+                waitingTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // 隐藏等待框
+            function hideWaitingBox() {
+                waitingOverlay.classList.remove('active');
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+            }
+            
+            // 切换菜单
+            function switchMenu(newMenu) {
+                currentMenu = newMenu;
+                menuStack.push(newMenu);
+                selectedIndex = 0;
+                
+                // 显示新菜单，隐藏其他菜单
+                submenus.forEach(menu => {
+                    if (menu === newMenu) {
+                        menu.classList.add('active');
+                    } else {
+                        menu.classList.remove('active');
+                    }
+                });
+                
+                // 隐藏主菜单
+                if (newMenu !== mainMenu) {
+                    mainMenu.style.display = 'none';
+                } else {
+                    mainMenu.style.display = 'block';
+                }
+                
+                updateSelection();
+            }
+            
+            // 返回上一级菜单
+            function goBack() {
+                if (menuStack.length > 1) {
+                    menuStack.pop(); // 移除当前菜单
+                    const prevMenu = menuStack[menuStack.length - 1];
+                    switchMenu(prevMenu);
+                }
+            }
+            
+            // 返回按钮点击事件
+            backButtons.forEach(button => {
+                button.addEventListener('click', goBack);
+            });
+            
+            // 菜单项点击事件
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // 如果等待框显示，不处理点击事件
+                    if (waitingOverlay.classList.contains('active')) return;
+                    
+                    // 更新选中索引
+                    const items = getCurrentMenuItems();
+                    selectedIndex = Array.from(items).indexOf(this);
+                    updateSelection();
+                    
+                    // 执行选择
+                    setTimeout(selectItem, 100);
+                });
+            });
+            
+            // 取消按钮点击事件
+            cancelButton.addEventListener('click', hideWaitingBox);
+        });
+    </script>
+</body>
+</html>
