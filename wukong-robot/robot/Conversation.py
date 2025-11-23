@@ -169,7 +169,9 @@ class Conversation(object):
                     stream = self.ai.stream_chat(query)
                     self.stream_say(stream, True, onCompleted=self.checkRestore)
                 else:
-                    msg = self.ai.chat(query, parsed)
+                    # msg = self.ai.chat(query, parsed)
+                    # self.say(msg, True, onCompleted=self.checkRestore)
+                    msg = "这个我还在学习中，不好意思。"
                     self.say(msg, True, onCompleted=self.checkRestore)
         else:
             # 命中技能

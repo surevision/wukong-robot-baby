@@ -20,3 +20,5 @@ apscheduler
 asyncio
 edge-tts
 nest_asyncio
+RPi.GPIO
+pyserial
