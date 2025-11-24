@@ -104,15 +104,12 @@ def initDetector(wukong):
             def _detected_callback():
                     wukong._detected_callback(False)
                     wukong.conversation.interrupt()
-                    query = wukong.conversation.activeListen(True)
+                    query = wukong.conversation.activeListen(False)
                     wukong.conversation.doResponse(query)
             callbacks = _detected_callback
-            sleep_time = 0.03
-            detector.listen(
+            detector.loop(
                 detected_callback=callbacks,
             )
-            while True:
-                time.sleep(sleep_time)
             detector.terminate()
         except Exception as e:
             logger.critical(f"离线唤醒机制初始化失败：{e}", stack_info=True)
