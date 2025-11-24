@@ -2,6 +2,7 @@ import time
 
 from snowboy import snowboydecoder
 from robot import config, logging, utils, constants
+from robot import AsrPro.AsrPro as AsrPro
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,8 @@ def initDetector(wukong):
     初始化离线唤醒热词监听器，支持 snowboy 和 porcupine 两大引擎
     """
     global porcupine, recorder, detector
-    if config.get("detector", "snowboy") == "porcupine":
+    cfg_detector = config.get("detector", "snowboy")
+    if cfg_detector == "porcupine":
         logger.info("使用 porcupine 进行离线唤醒")
 
         import pvporcupine
@@ -93,6 +95,28 @@ def initDetector(wukong):
             porcupine and porcupine.delete()
             recorder and recorder.delete()
 
+    elif cfg_detector == "asrpro":
+        logger.info("使用 asrpro 进行离线唤醒")
+        detector and detector.terminate()
+        detector = AsrPro()
+        # main loop
+        try:
+            def _detected_callback():
+                    wukong._detected_callback(False)
+                    wukong.conversation.interrupt()
+                    query = wukong.conversation.activeListen(True)
+                    wukong.conversation.doResponse(query)
+            callbacks = _detected_callback
+            sleep_time = 0.03
+            detector.listen(
+                detected_callback=callbacks,
+            )
+            while True:
+                time.sleep(sleep_time)
+            detector.terminate()
+        except Exception as e:
+            logger.critical(f"离线唤醒机制初始化失败：{e}", stack_info=True)
+    
     else:
         logger.info("使用 snowboy 进行离线唤醒")
         detector and detector.terminate()
