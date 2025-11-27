@@ -3,12 +3,15 @@
 import RPi.GPIO as GPIO
 import serial
 import time
+from robot import config, logging, utils, constants
+logger = logging.getLogger(__name__)
 
+
+GPIO_PA_4 = 37
+SERIAL_HELLO = b'hello'
+BOUNCETIME = 2
 class AsrPro():
-
-    GPIO_PA_4 = 37
-    SERIAL_HELLO = "hello"
-    BOUNCETIME = 2000
+    global GPIO_PA_4, SERIAL_HELLO, BOUNCETIME
     
     def __init__(self):
         GPIO.setmode(GPIO.BOARD)
@@ -18,7 +21,7 @@ class AsrPro():
         self.ser = serial.Serial("/dev/ttyAMA0", 115200)
         # self.ser = serial.Serial("/dev/ttyS0", 115200)
     
-    def terminate()
+    def terminate():
         if self.ser != None:
             self.ser.close()
         GPIO.clean()
@@ -41,7 +44,7 @@ class AsrPro():
             # 清空接收缓冲区
             self.ser.flushInput()
             if GPIO.input(GPIO_PA_4) and len(recv) > 2:    # 用GPIO.input(引脚)函数来获取引脚电平状态
-                print("HIGH!!!!!!!!!!!!!")
+                logger.info("HIGH!!!!!!!!!!!!!")
                 if (detected_callback):
                     detected_callback()
         GPIO.add_event_detect(GPIO_PA_4, GPIO.RISING, callback=__detected_callback, bouncetime=BOUNCETIME)
@@ -49,21 +52,25 @@ class AsrPro():
     # 主循环模式
     def loop(self, detected_callback):
         last_time = time.time()
+        recv = ""
         while True:
             # 获得接收缓冲区字符
             count = self.ser.inWaiting()
-            recv = ""
             if count != 0:
                 # 读取内容并回显
                 recv = self.ser.read(count)
                 # self.ser.write(recv)
-                print(recv)
+                logger.info(recv)
             # 清空接收缓冲区
             self.ser.flushInput()
-            if GPIO.input(GPIO_PA_4) and len(recv) > 2:    # 用GPIO.input(引脚)函数来获取引脚电平状态
-                print("HIGH!!!!!!!!!!!!!")
-                if time.time() - last_time > BOUNCETIME:
-                    last_time = time.time()
-                    if (detected_callback):
-                        detected_callback()
+            if GPIO.input(GPIO_PA_4):    # 用GPIO.input(引脚)函数来获取引脚电平状态
+                logger.info("HIGH!!!!!!!!!!!!!")
+                logger.info([SERIAL_HELLO, recv, SERIAL_HELLO == recv])
+                if SERIAL_HELLO == recv:
+                    recv = ""
+                    logger.info([time.time(), last_time, time.time() - last_time])
+                    if time.time() - last_time > BOUNCETIME:
+                        last_time = time.time()
+                        if (detected_callback):
+                            detected_callback()
             time.sleep(0.03)

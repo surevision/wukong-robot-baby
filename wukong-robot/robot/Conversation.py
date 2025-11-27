@@ -407,7 +407,7 @@ class Conversation(object):
         audios = self._tts(lines, cache, onCompleted)
         self._after_play(msg, audios, plugin)
 
-    def activeListen(self, silent=False):
+    def activeListen(self, silent=False, force_voice_think=False):
         """
         主动问一个问题(适用于多轮对话)
         :param silent: 是否不触发唤醒表现（主要用于极客模式）
@@ -428,7 +428,7 @@ class Conversation(object):
                 silent_count_threshold=config.get("silent_threshold", 15),
                 recording_timeout=config.get("recording_timeout", 5) * 4,
             )
-            if not silent:
+            if (not silent) or force_voice_think:
                 self.lifeCycleHandler.onThink()
             if voice:
                 query = self.asr.transcribe(voice)

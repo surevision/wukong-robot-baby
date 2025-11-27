@@ -2,7 +2,7 @@ import time
 
 from snowboy import snowboydecoder
 from robot import config, logging, utils, constants
-from robot import AsrPro.AsrPro as AsrPro
+from robot.AsrPro import AsrPro
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ def initDetector(wukong):
             def _detected_callback():
                     wukong._detected_callback(False)
                     wukong.conversation.interrupt()
-                    query = wukong.conversation.activeListen(False)
+                    query = wukong.conversation.activeListen(silent=True, force_voice_think=True)
                     wukong.conversation.doResponse(query)
             callbacks = _detected_callback
             detector.loop(
