@@ -185,8 +185,10 @@ class MusicPlayer(SoxPlayer):
         self.idx = 0
         self.play()
 
-    def play(self):
+    def play(self, idx=None):
         logger.debug("MusicPlayer play")
+        if idx is not None:
+            self.idx = idx
         path = self.playlist[self.idx]
         super().stop()
         super().play(path, False, self.next)

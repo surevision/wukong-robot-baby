@@ -269,39 +269,29 @@
             <div class="menu-container" id="mainMenu">
                 <div class="menu-item has-submenu" data-target="idiom-stories">成语故事</div>
                 <div class="menu-item has-submenu" data-target="children-songs">儿歌</div>
-                <div class="menu-item" data-target="time">时间</div>
-                <div class="menu-item" data-target="weather">天气</div>
+                <div class="menu-item ip_check" data-target="time">IP查询</div>
+                <div class="menu-item weather" data-target="weather">天气预报</div>
             </div>
             
             <div class="submenu" id="idiom-stories-submenu">
                 <div class="back-button">返回主菜单</div>
                 <div class="submenu-content">
-                    <div class="menu-item">守株待兔</div>
-                    <div class="menu-item">画蛇添足</div>
-                    <div class="menu-item">井底之蛙</div>
-                    <div class="menu-item">狐假虎威</div>
-                    <div class="menu-item">对牛弹琴</div>
-                    <div class="menu-item">亡羊补牢</div>
-                    <div class="menu-item">掩耳盗铃</div>
-                    <div class="menu-item">刻舟求剑</div>
-                    <div class="menu-item">拔苗助长</div>
-                    <div class="menu-item">自相矛盾</div>
+                      {% if chengyu_list %}
+                        {% for item in chengyu_list %}
+                        <div class="menu-item chengyu">{{ item }}</div>
+                        {% end %}
+                    {% end %}
                 </div>
             </div>
             
             <div class="submenu" id="children-songs-submenu">
                 <div class="back-button">返回主菜单</div>
                 <div class="submenu-content">
-                    <div class="menu-item">小星星</div>
-                    <div class="menu-item">两只老虎</div>
-                    <div class="menu-item">小兔子乖乖</div>
-                    <div class="menu-item">拔萝卜</div>
-                    <div class="menu-item">找朋友</div>
-                    <div class="menu-item">小毛驴</div>
-                    <div class="menu-item">蜗牛与黄鹂鸟</div>
-                    <div class="menu-item">数鸭子</div>
-                    <div class="menu-item">卖报歌</div>
-                    <div class="menu-item">春天在哪里</div>
+                      {% if song_list %}
+                        {% for item in song_list %}
+                        <div class="menu-item erge">{{ item }}</div>
+                        {% end %}
+                    {% end %}
                 </div>
             </div>
         </div>
@@ -320,10 +310,10 @@
         <div class="waiting-overlay" id="waitingOverlay">
             <div class="waiting-box">
                 <div class="waiting-icon"></div>
-                <div class="waiting-title">加载中...</div>
+                <div class="waiting-title">播放中...</div>
                 <div class="waiting-timer" id="waitingTimer">01:00</div>
-                <div class="waiting-message" id="waitingMessage">正在准备内容，请稍候</div>
-                <button class="cancel-button" id="cancelButton">取消</button>
+                <div class="waiting-message" id="waitingMessage">加载中...</div>
+                <button class="cancel-button" id="cancelButton">停止</button>
             </div>
         </div>
     </div>
@@ -379,6 +369,37 @@
                 }
             });
             
+            function callPlay(data, type, callback) {
+                let url = `/${type}`;
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                }).then((response) => {callback();})
+            }
+            
+            function callStop() {
+                let data = {control: "stop"}
+                let url = `/erge`;
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                });
+                url = `/chengyu`;
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                });
+            }
+
             // 移动选择
             function moveSelection(direction) {
                 const items = getCurrentMenuItems();
@@ -450,34 +471,56 @@
                     }
                 } else {
                     // 显示等待框
-                    showWaitingBox(selectedItem.textContent);
+                    showWaitingBox(selectedItem.textContent, selectedItem);
                 }
             }
             
             // 显示等待框
-            function showWaitingBox(selectedItem) {
-                // 更新等待消息
-                waitingMessage.textContent = `正在加载 ${selectedItem}，请稍候`;
+            function showWaitingBox(text, selectedItem) {
                 
-                // 重置倒计时
-                countdownSeconds = 60;
-                updateTimerDisplay();
-                
-                // 显示等待框
-                waitingOverlay.classList.add('active');
-                
-                // 开始倒计时
-                countdownInterval = setInterval(function() {
-                    countdownSeconds--;
+                if (selectedItem.classList.contains("erge")) {
+                    type = "erge";
+                    data = {name: text};
+                }
+                if (selectedItem.classList.contains("chengyu")) {
+                    type = "chengyu";
+                    data = {name: text};
+                }
+                if (selectedItem.classList.contains("ip_check")) {
+                    type = "ip_check";
+                }
+                if (selectedItem.classList.contains("weather")) {
+                    type = "weather";
+                }
+
+                if (["erge", "chengyu"].indexOf(type) > -1) {
+                    // 需要显示播放的
+                    callPlay({name: text}, type, () => {
+                        if (countdownInterval) {
+                            clearInterval(countdownInterval);
+                            countdownInterval = null;
+                        }
+                        countdownSeconds = 0;
+                        // 开始显示时间
+                        countdownInterval = setInterval(function() {
+                            countdownSeconds++;
+                            updateTimerDisplay();
+                        }, 1000);
+                    });
+                    // 更新等待消息
+                    waitingMessage.textContent = `正在播放 ${text}`;
+                    
+                    // 重置倒计时
+                    countdownSeconds = 0;
                     updateTimerDisplay();
                     
-                    if (countdownSeconds <= 0) {
-                        clearInterval(countdownInterval);
-                        // 倒计时结束，关闭等待框
-                        hideWaitingBox();
-                        alert(`${selectedItem} 加载完成！`);
-                    }
-                }, 1000);
+                    // 显示等待框
+                    waitingOverlay.classList.add('active');
+                } else {
+                    // 不需要显示播放的
+                    callPlay({}, type);
+                    alert("已执行");
+                }
             }
             
             // 更新计时器显示
@@ -494,6 +537,7 @@
                     clearInterval(countdownInterval);
                     countdownInterval = null;
                 }
+                callStop();
             }
             
             // 切换菜单

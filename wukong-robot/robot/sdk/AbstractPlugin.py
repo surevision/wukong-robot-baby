@@ -48,7 +48,7 @@ class AbstractPlugin(metaclass=ABCMeta):
         """
         self.con.say(text, cache=cache, plugin=self.SLUG, onCompleted=onCompleted)
 
-    def activeListen(self, silent=False):
+    def activeListen(self, silent=False, force_voice_think=False):
         if (
             self.SLUG != "geek"
             and self.con.immersiveMode
@@ -59,7 +59,7 @@ class AbstractPlugin(metaclass=ABCMeta):
             self.critical("错误：请退出极客模式后再试")
             self.say("错误：请退出极客模式后再试")
             return ""
-        return self.con.activeListen(silent)
+        return self.con.activeListen(silent, force_voice_think)
 
     def clearImmersive(self):
         self.con.setImmersiveMode(None)

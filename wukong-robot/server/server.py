@@ -310,7 +310,7 @@ class DonateHandler(BaseHandler):
             self.redirect("/login")
             return
         r = requests.get(
-            "https://raw.githubusercontent.com/wzpan/wukong-contrib/master/docs/donate.md"
+            ""
         )
         content = markdown.markdown(
             r.text,
