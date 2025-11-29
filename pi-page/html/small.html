@@ -34,11 +34,15 @@
         .header {
             background: #4a00e0;
             color: white;
-            padding: 3vw;
+            padding: 1vw; /* 进一步减小内边距 */
             text-align: center;
-            font-size: 5vw; /* 增大头部字号 */
+            font-size: 4vw; /* 进一步减小头部字号 */
             font-weight: bold;
             flex-shrink: 0;
+            height: 8vw; /* 进一步减小高度 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .menu-scroll-container {
@@ -59,13 +63,13 @@
             margin-bottom: 2vw;
             background-color: #f5f5f5;
             border-radius: 2vw;
-            cursor: pointer;
+            cursor: pointer; /* 恢复指针样式 */
             transition: all 0.2s ease;
             border: 0.5vw solid transparent;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 4.5vw; /* 增大菜单项字号 */
+            font-size: 4.5vw;
         }
         
         .menu-item.selected {
@@ -112,7 +116,7 @@
             display: flex;
             align-items: center;
             padding: 2.5vw 3vw;
-            cursor: pointer;
+            cursor: pointer; /* 恢复指针样式 */
             color: #4a00e0;
             font-weight: bold;
             font-size: 4.5vw;
@@ -143,12 +147,23 @@
             margin-top: 1vw;
         }
         
-        .key {
+        .virtual-key {
             background-color: #e0e0e0;
-            padding: 0.5vw 2vw;
-            border-radius: 1vw;
+            padding: 1.5vw 4vw;
+            border-radius: 2vw;
             font-weight: bold;
-            font-size: 3.5vw;
+            font-size: 4vw;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 0.3vw solid #ccc;
+            min-width: 12vw;
+            text-align: center;
+        }
+        
+        .virtual-key:active {
+            background-color: #4a00e0;
+            color: white;
+            transform: scale(0.95);
         }
         
         /* 等待框样式 */
@@ -242,8 +257,9 @@
         /* 小屏幕优化 */
         @media (max-height: 480px) {
             .header {
-                padding: 2.5vw;
-                font-size: 4.5vw;
+                padding: 0.8vw;
+                font-size: 3.5vw;
+                height: 7vw;
             }
             
             .menu-item {
@@ -257,6 +273,12 @@
                 font-size: 3vw;
             }
             
+            .virtual-key {
+                padding: 1vw 3vw;
+                font-size: 3.5vw;
+                min-width: 10vw;
+            }
+            
             .waiting-box {
                 padding: 4vw;
             }
@@ -268,8 +290,9 @@
         
         @media (max-height: 320px) {
             .header {
-                padding: 2vw;
-                font-size: 4vw;
+                padding: 0.5vw;
+                font-size: 3vw;
+                height: 6vw;
             }
             
             .menu-item {
@@ -281,6 +304,12 @@
             .footer {
                 padding: 1vw 2vw;
                 font-size: 2.5vw;
+            }
+            
+            .virtual-key {
+                padding: 0.8vw 2.5vw;
+                font-size: 3vw;
+                min-width: 8vw;
             }
         }
     </style>
@@ -323,10 +352,10 @@
         <div class="footer">
             <div>使用方向键选择，Enter键确认</div>
             <div class="key-hint">
-                <span class="key">↑</span>
-                <span class="key">↓</span>
-                <span class="key">Enter</span>
-                <span class="key">Esc</span>
+                <div class="virtual-key" data-key="ArrowUp">↑</div>
+                <div class="virtual-key" data-key="ArrowDown">↓</div>
+                <div class="virtual-key" data-key="Enter">确认</div>
+                <div class="virtual-key" data-key="Escape">返回</div>
             </div>
         </div>
         
@@ -353,6 +382,7 @@
             const waitingTimer = document.getElementById('waitingTimer');
             const waitingMessage = document.getElementById('waitingMessage');
             const cancelButton = document.getElementById('cancelButton');
+            const virtualKeys = document.querySelectorAll('.virtual-key');
             
             let currentMenu = mainMenu;
             let selectedIndex = 0;
@@ -365,33 +395,83 @@
             
             // 键盘事件监听
             document.addEventListener('keydown', function(e) {
+                handleKeyPress(e.key);
+            });
+            
+            // 虚拟按键点击事件
+            virtualKeys.forEach(key => {
+                key.addEventListener('click', function() {
+                    const keyValue = this.getAttribute('data-key');
+                    handleKeyPress(keyValue);
+                    
+                    // 添加点击反馈
+                    this.style.backgroundColor = '#4a00e0';
+                    this.style.color = 'white';
+                    setTimeout(() => {
+                        this.style.backgroundColor = '#e0e0e0';
+                        this.style.color = '#333';
+                    }, 150);
+                });
+            });
+            
+            // 菜单项点击事件 - 恢复导航功能
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // 如果等待框显示，不处理点击事件
+                    if (waitingOverlay.classList.contains('active')) return;
+                    
+                    // 更新选中索引
+                    const items = getCurrentMenuItems();
+                    selectedIndex = Array.from(items).indexOf(this);
+                    updateSelection();
+                    
+                    // 如果是子菜单项，允许进入子菜单
+                    if (this.classList.contains('has-submenu')) {
+                        setTimeout(() => {
+                            const target = this.getAttribute('data-target');
+                            const submenu = document.getElementById(`${target}-submenu`);
+                            if (submenu) {
+                                switchMenu(submenu);
+                            }
+                        }, 100);
+                    }
+                });
+            });
+            
+            // 返回按钮点击事件 - 恢复返回功能
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    goBack();
+                });
+            });
+            
+            // 取消按钮点击事件
+            cancelButton.addEventListener('click', hideWaitingBox);
+            
+            function handleKeyPress(key) {
                 // 如果等待框显示，只允许取消操作
                 if (waitingOverlay.classList.contains('active')) {
-                    if (e.key === 'Escape') {
+                    if (key === 'Escape' || key === 'Enter') {
                         hideWaitingBox();
                     }
                     return;
                 }
                 
-                switch(e.key) {
+                switch(key) {
                     case 'ArrowUp':
-                        e.preventDefault();
                         moveSelection(-1);
                         break;
                     case 'ArrowDown':
-                        e.preventDefault();
                         moveSelection(1);
                         break;
                     case 'Enter':
-                        e.preventDefault();
                         selectItem();
                         break;
                     case 'Escape':
-                        e.preventDefault();
                         goBack();
                         break;
                 }
-            });
+            }
             
             function callPlay(data, type, callback) {
                 let url = `/${type}`;
@@ -477,7 +557,7 @@
                 }
             }
             
-            // 选择项目
+            // 选择项目 - 只有键盘Enter键和虚拟确认键能执行
             function selectItem() {
                 const items = getCurrentMenuItems();
                 const selectedItem = items[selectedIndex];
@@ -494,13 +574,15 @@
                         switchMenu(submenu);
                     }
                 } else {
-                    // 显示等待框
+                    // 显示等待框 - 只有键盘/虚拟按键能触发执行
                     showWaitingBox(selectedItem.textContent, selectedItem);
                 }
             }
             
             // 显示等待框
             function showWaitingBox(text, selectedItem) {
+                let type = "";
+                let data = {};
                 
                 if (selectedItem.classList.contains("erge")) {
                     type = "erge";
@@ -597,30 +679,6 @@
                     switchMenu(prevMenu);
                 }
             }
-            
-            // 返回按钮点击事件
-            backButtons.forEach(button => {
-                button.addEventListener('click', goBack);
-            });
-            
-            // 菜单项点击事件
-            menuItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    // 如果等待框显示，不处理点击事件
-                    if (waitingOverlay.classList.contains('active')) return;
-                    
-                    // 更新选中索引
-                    const items = getCurrentMenuItems();
-                    selectedIndex = Array.from(items).indexOf(this);
-                    updateSelection();
-                    
-                    // 执行选择
-                    setTimeout(selectItem, 100);
-                });
-            });
-            
-            // 取消按钮点击事件
-            cancelButton.addEventListener('click', hideWaitingBox);
         });
     </script>
 </body>

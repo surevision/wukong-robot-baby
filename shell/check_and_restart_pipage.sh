@@ -21,4 +21,4 @@ else
 echo "tailscale already online"
 fi
 sleep 1s
-chromium-browser --incognito --kiosk "http://localhost:6001"
+chromium-browser --incognito --kiosk --password-store=basic "http://localhost:6001"
