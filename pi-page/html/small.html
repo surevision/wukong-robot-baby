@@ -20,6 +20,7 @@
             height: 100vh;
             color: #333;
             overflow: hidden;
+            font-size: 4vw; /* 基础字号使用视口宽度单位 */
         }
         
         .watch-container {
@@ -33,9 +34,9 @@
         .header {
             background: #4a00e0;
             color: white;
-            padding: 12px;
+            padding: 3vw;
             text-align: center;
-            font-size: 16px;
+            font-size: 5vw; /* 增大头部字号 */
             font-weight: bold;
             flex-shrink: 0;
         }
@@ -47,24 +48,24 @@
         }
         
         .menu-container {
-            padding: 10px;
+            padding: 2.5vw;
             height: 100%;
             overflow-y: auto;
             transition: transform 0.3s ease;
         }
         
         .menu-item {
-            padding: 14px;
-            margin-bottom: 8px;
+            padding: 3.5vw;
+            margin-bottom: 2vw;
             background-color: #f5f5f5;
-            border-radius: 8px;
+            border-radius: 2vw;
             cursor: pointer;
             transition: all 0.2s ease;
-            border: 2px solid transparent;
+            border: 0.5vw solid transparent;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 14px;
+            font-size: 4.5vw; /* 增大菜单项字号 */
         }
         
         .menu-item.selected {
@@ -76,6 +77,7 @@
         .menu-item.has-submenu::after {
             content: ">";
             font-weight: bold;
+            font-size: 4.5vw;
         }
         
         .menu-item.selected.has-submenu::after {
@@ -102,34 +104,34 @@
         
         .submenu-content {
             flex: 1;
-            padding: 10px;
+            padding: 2.5vw;
             overflow-y: auto;
         }
         
         .back-button {
             display: flex;
             align-items: center;
-            padding: 10px 12px;
+            padding: 2.5vw 3vw;
             cursor: pointer;
             color: #4a00e0;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 4.5vw;
             background-color: #f8f8f8;
-            border-bottom: 1px solid #eee;
+            border-bottom: 0.25vw solid #eee;
             flex-shrink: 0;
         }
         
         .back-button::before {
             content: "<";
-            margin-right: 6px;
+            margin-right: 1.5vw;
             font-weight: bold;
         }
         
         .footer {
-            padding: 8px 12px;
+            padding: 2vw 3vw;
             background-color: #f0f0f0;
-            border-top: 1px solid #ddd;
-            font-size: 10px;
+            border-top: 0.25vw solid #ddd;
+            font-size: 3.5vw;
             color: #666;
             text-align: center;
             flex-shrink: 0;
@@ -138,15 +140,15 @@
         .key-hint {
             display: flex;
             justify-content: space-around;
-            margin-top: 4px;
+            margin-top: 1vw;
         }
         
         .key {
             background-color: #e0e0e0;
-            padding: 1px 6px;
-            border-radius: 3px;
+            padding: 0.5vw 2vw;
+            border-radius: 1vw;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 3.5vw;
         }
         
         /* 等待框样式 */
@@ -173,8 +175,8 @@
         
         .waiting-box {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 3vw;
+            padding: 5vw;
             width: 85%;
             max-width: 200px;
             text-align: center;
@@ -187,42 +189,42 @@
         }
         
         .waiting-icon {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 10px;
-            border: 3px solid #f0f0f0;
-            border-top: 3px solid #4a00e0;
+            width: 10vw;
+            height: 10vw;
+            margin: 0 auto 2.5vw;
+            border: 0.75vw solid #f0f0f0;
+            border-top: 0.75vw solid #4a00e0;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         
         .waiting-title {
-            font-size: 14px;
+            font-size: 4.5vw;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 2vw;
             color: #333;
         }
         
         .waiting-timer {
-            font-size: 20px;
+            font-size: 7vw;
             font-weight: bold;
             color: #4a00e0;
-            margin: 10px 0;
+            margin: 2.5vw 0;
             font-family: 'Courier New', monospace;
         }
         
         .waiting-message {
-            font-size: 12px;
+            font-size: 4vw;
             color: #666;
-            margin-bottom: 12px;
+            margin-bottom: 3vw;
         }
         
         .cancel-button {
             background-color: #f0f0f0;
             border: none;
-            padding: 8px 16px;
-            border-radius: 16px;
-            font-size: 12px;
+            padding: 2vw 4vw;
+            border-radius: 4vw;
+            font-size: 4vw;
             color: #666;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -240,45 +242,45 @@
         /* 小屏幕优化 */
         @media (max-height: 480px) {
             .header {
-                padding: 8px;
-                font-size: 14px;
+                padding: 2.5vw;
+                font-size: 4.5vw;
             }
             
             .menu-item {
-                padding: 10px;
-                margin-bottom: 6px;
-                font-size: 13px;
+                padding: 3vw;
+                margin-bottom: 1.5vw;
+                font-size: 4vw;
             }
             
             .footer {
-                padding: 6px 10px;
-                font-size: 9px;
+                padding: 1.5vw 2.5vw;
+                font-size: 3vw;
             }
             
             .waiting-box {
-                padding: 15px;
+                padding: 4vw;
             }
             
             .waiting-timer {
-                font-size: 18px;
+                font-size: 6vw;
             }
         }
         
         @media (max-height: 320px) {
             .header {
-                padding: 6px;
-                font-size: 13px;
+                padding: 2vw;
+                font-size: 4vw;
             }
             
             .menu-item {
-                padding: 8px;
-                margin-bottom: 4px;
-                font-size: 12px;
+                padding: 2.5vw;
+                margin-bottom: 1vw;
+                font-size: 3.5vw;
             }
             
             .footer {
-                padding: 4px 8px;
-                font-size: 8px;
+                padding: 1vw 2vw;
+                font-size: 2.5vw;
             }
         }
     </style>

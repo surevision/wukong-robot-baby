@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+import re
+import random
 import platform
 
 from robot import config, logging
@@ -10,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class Plugin(AbstractPlugin):
+
+    SLUG = "ChengYuGuShi"
 
     IS_IMMERSIVE = True  # 这是个沉浸式技能
 
@@ -22,12 +26,14 @@ class Plugin(AbstractPlugin):
     def get_song_list(self, path):
         song_list = []
         song_titles = []
-        if not os.path.exists(path) or not os.path.isdir(path):
-            return []
+        if not os.path.exists(path):
+            return [], []
         with open(path, 'r') as f:
             for line in f.readlines():
                 song_title = line.split("$")[0]
                 song_path = line.split("$")[1]
+                song_titles.append(song_title)
+                song_list.append(song_path)
         return song_titles, song_list
 
     def init_music_player(self):
@@ -58,7 +64,8 @@ class Plugin(AbstractPlugin):
             self.say("未指定成语故事文件，播放失败")
             return
 
-        if any(lambda item: re.match(pattern, item) for pattern in patterns):
+        if any(re.match(pattern, text) is not None for pattern in patterns):
+            logger.info("开始随机播放")
             self.player.play(random.randrange(len(self.song_list)))
         elif (re.match(pattern_cert_1, text) is not None):
             idx = -1
@@ -70,6 +77,7 @@ class Plugin(AbstractPlugin):
                     break
                 i += 1
             if idx >= 0:
+                logger.info("开始播放指定的成语故事")
                 self.player.play(idx)
             else:
                 self.say("没有找到这个成语故事")
@@ -114,11 +122,7 @@ class Plugin(AbstractPlugin):
         pattern_cert_ctr_2 = re.compile("上一个成语故事")
         pattern_cert_ctr_3 = re.compile("停止成语故事")
 
-        return any(lambda item: re.match(pattern, item) for pattern in patterns) or 
-            re.match(pattern_cert_1, text) or 
-            re.match(pattern_cert_ctr_1, text) or 
-            re.match(pattern_cert_ctr_2, text) or 
-            re.match(pattern_cert_ctr_3, text)
+        return re.match(pattern_cert_ctr_1, text) or re.match(pattern_cert_ctr_2, text) or re.match(pattern_cert_ctr_3, text)
 
     def isValid(self, text, parsed):
         patterns = [re.compile("随便(.*?)成语故事"),
@@ -129,5 +133,4 @@ class Plugin(AbstractPlugin):
 
         pattern_cert_1 = re.compile("讲成语故事(.*?)")
 
-        return any(lambda item: re.match(pattern, item) for pattern in patterns) or 
-            re.match(pattern_cert_1, text)
+        return any(re.match(pattern, text) is not None for pattern in patterns) or re.match(pattern_cert_1, text)

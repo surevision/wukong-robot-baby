@@ -31,7 +31,7 @@ settings = {
 }
 
 class BaseHandler(tornado.web.RequestHandler):
-    def initialize(self, key, uuid):
+    def initialize(self, key="", uuid=""):
         self.key = key
         self.uuid = uuid
 
@@ -71,7 +71,10 @@ class ErgeHandler(BaseHandler):
                 query = "随便唱一个儿歌"
             else:
                 query = f"唱儿歌{name}"
-        requests.post(url=url, data=json.dumps(data))
+        data["query"] = query
+        response = requests.post(url=url, data=json.dumps(data))
+        response.raise_for_status()
+        print(response.text)
 
 class ChengyuHandler(BaseHandler):
     def post(self):
@@ -92,7 +95,10 @@ class ChengyuHandler(BaseHandler):
                 query = "随便讲一个成语故事"
             else:
                 query = f"讲成语故事{name}"
-        requests.post(url=url, data=json.dumps(data))
+        data["query"] = query
+        response = requests.post(url=url, data=json.dumps(data))
+        response.raise_for_status()
+        print(response.text)
 
 class IPCheckHandler(BaseHandler):
     def post(self):
@@ -104,8 +110,12 @@ class IPCheckHandler(BaseHandler):
             "uuid": self.uuid,
             "validate": self.key
         }
+        print(json.dumps(data))
         query = "本地IP"
-        requests.post(url=url, data=json.dumps(data))
+        data["query"] = query
+        response = requests.post(url=url, data=json.dumps(data))
+        response.raise_for_status()
+        print(response.text)
 
 
 class WeatherHandler(BaseHandler):
@@ -119,7 +129,10 @@ class WeatherHandler(BaseHandler):
             "validate": self.key
         }
         query = "天气预报"
-        requests.post(url=url, data=json.dumps(data))
+        data["query"] = query
+        response = requests.post(url=url, data=json.dumps(data))
+        response.raise_for_status()
+        print(response.text)
 
 def start_server():
     port = PORT
@@ -131,7 +144,7 @@ def start_server():
         if len(keys) > 0:
             key = keys[0].strip()
     
-
+    print(f"start with key {key}")
     application = tornado.web.Application(
         [
             (r"/", MainHandler, dict(key=key, uuid=uuid_str)),

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=wukong
+Comment=wukong
+Exec=bash /home/admin/shell/check_and_restart_wukong.sh
+Terminal=true
+Type=
+NoDisplay=true

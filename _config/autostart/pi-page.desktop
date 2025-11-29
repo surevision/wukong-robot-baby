@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=pi-page
+Comment=pi-page
+Exec=bash /home/admin/shell/check_and_restart_pipage.sh
+Terminal=true
+Type=
+NoDisplay=false
