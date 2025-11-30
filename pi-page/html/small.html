@@ -57,6 +57,7 @@
             font-size: 3vw;
             cursor: pointer;
             transition: all 0.2s ease;
+            outline: none; /* 移除焦点轮廓 */
         }
         
         .refresh-button:active {
@@ -448,7 +449,7 @@
     <div class="watch-container">
         <div class="header">
             功能菜单
-            <button class="refresh-button" id="refreshButton">刷新</button>
+            <button class="refresh-button" id="refreshButton" tabindex="-1">刷新</button>
         </div>
         
         <div class="menu-scroll-container">
@@ -604,6 +605,8 @@
             
             // 刷新按钮点击事件
             refreshButton.addEventListener('click', function() {
+                // 取消选中状态
+                clearSelection();
                 resetToMainMenu();
             });
             
@@ -612,6 +615,7 @@
                 // 如果按下F5或Ctrl+R，刷新页面
                 if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
                     e.preventDefault();
+                    clearSelection();
                     resetToMainMenu();
                     return;
                 }
@@ -707,6 +711,15 @@
                         goBack();
                         break;
                 }
+            }
+            
+            // 清除选中状态
+            function clearSelection() {
+                const items = getCurrentMenuItems();
+                items.forEach((item, index) => {
+                    item.classList.remove('selected');
+                });
+                selectedIndex = -1; // 设置为无效索引
             }
             
             // 重置到主菜单
