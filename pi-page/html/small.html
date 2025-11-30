@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -43,6 +43,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+        }
+        
+        .refresh-button {
+            position: absolute;
+            right: 2vw;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 1vw 2vw;
+            border-radius: 1.5vw;
+            font-size: 3vw;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .refresh-button:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
         }
         
         .menu-scroll-container {
@@ -249,6 +268,95 @@
             background-color: #e0e0e0;
         }
         
+        /* 自定义alert模态框样式 */
+        .custom-alert-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-alert-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .custom-alert-box {
+            background: white;
+            border-radius: 3vw;
+            padding: 5vw;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            box-shadow: 0 2vw 4vw rgba(0, 0, 0, 0.3);
+        }
+        
+        .custom-alert-overlay.active .custom-alert-box {
+            transform: scale(1);
+        }
+        
+        .custom-alert-icon {
+            width: 12vw;
+            height: 12vw;
+            margin: 0 auto 3vw;
+            background-color: #4a00e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 6vw;
+            font-weight: bold;
+        }
+        
+        .custom-alert-title {
+            font-size: 5vw;
+            font-weight: bold;
+            margin-bottom: 3vw;
+            color: #333;
+        }
+        
+        .custom-alert-message {
+            font-size: 4.2vw;
+            color: #666;
+            margin-bottom: 4vw;
+            line-height: 1.4;
+        }
+        
+        .custom-alert-timer {
+            font-size: 3.5vw;
+            color: #999;
+            margin-top: 3vw;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 1vw;
+            background-color: #f0f0f0;
+            border-radius: 0.5vw;
+            margin-top: 2vw;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4a00e0;
+            width: 100%;
+            border-radius: 0.5vw;
+            transition: width 0.1s linear;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -260,6 +368,12 @@
                 padding: 0.8vw;
                 font-size: 3.5vw;
                 height: 7vw;
+            }
+            
+            .refresh-button {
+                padding: 0.8vw 1.5vw;
+                font-size: 2.5vw;
+                right: 1.5vw;
             }
             
             .menu-item {
@@ -286,6 +400,16 @@
             .waiting-timer {
                 font-size: 6vw;
             }
+            
+            .custom-alert-box {
+                padding: 4vw;
+            }
+            
+            .custom-alert-icon {
+                width: 10vw;
+                height: 10vw;
+                font-size: 5vw;
+            }
         }
         
         @media (max-height: 320px) {
@@ -293,6 +417,12 @@
                 padding: 0.5vw;
                 font-size: 3vw;
                 height: 6vw;
+            }
+            
+            .refresh-button {
+                padding: 0.5vw 1vw;
+                font-size: 2vw;
+                right: 1vw;
             }
             
             .menu-item {
@@ -316,14 +446,17 @@
 </head>
 <body>
     <div class="watch-container">
-        <div class="header">功能菜单</div>
+        <div class="header">
+            功能菜单
+            <button class="refresh-button" id="refreshButton">刷新</button>
+        </div>
         
         <div class="menu-scroll-container">
             <div class="menu-container" id="mainMenu">
                 <div class="menu-item has-submenu" data-target="idiom-stories">成语故事</div>
                 <div class="menu-item has-submenu" data-target="children-songs">儿歌</div>
-                <div class="menu-item ip_check" data-target="time">IP查询</div>
                 <div class="menu-item weather" data-target="weather">天气预报</div>
+                <div class="menu-item ip_check" data-target="time">IP查询</div>
             </div>
             
             <div class="submenu" id="idiom-stories-submenu">
@@ -369,6 +502,19 @@
                 <button class="cancel-button" id="cancelButton">停止</button>
             </div>
         </div>
+        
+        <!-- 自定义alert模态框 -->
+        <div class="custom-alert-overlay" id="customAlertOverlay">
+            <div class="custom-alert-box">
+                <div class="custom-alert-icon">!</div>
+                <div class="custom-alert-title">提示</div>
+                <div class="custom-alert-message" id="customAlertMessage">消息内容</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="custom-alert-timer" id="customAlertTimer">5秒后关闭</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -383,18 +529,93 @@
             const waitingMessage = document.getElementById('waitingMessage');
             const cancelButton = document.getElementById('cancelButton');
             const virtualKeys = document.querySelectorAll('.virtual-key');
+            const refreshButton = document.getElementById('refreshButton');
+            
+            // 自定义alert元素
+            const customAlertOverlay = document.getElementById('customAlertOverlay');
+            const customAlertMessage = document.getElementById('customAlertMessage');
+            const customAlertTimer = document.getElementById('customAlertTimer');
+            const progressFill = document.getElementById('progressFill');
             
             let currentMenu = mainMenu;
             let selectedIndex = 0;
             let menuStack = [mainMenu];
             let countdownInterval = null;
             let countdownSeconds = 60; // 1分钟倒计时
+            let alertTimeout = null;
+            let alertCountdown = null;
 
             // 初始化菜单
             updateSelection();
             
+            // 自定义alert函数
+            function showCustomAlert(message, duration = 5000) {
+                // 清除现有的定时器
+                if (alertTimeout) {
+                    clearTimeout(alertTimeout);
+                    alertTimeout = null;
+                }
+                if (alertCountdown) {
+                    clearInterval(alertCountdown);
+                    alertCountdown = null;
+                }
+                
+                // 设置消息内容
+                customAlertMessage.textContent = message;
+                progressFill.style.width = '100%';
+                customAlertTimer.textContent = '5秒后关闭';
+                
+                // 显示模态框
+                customAlertOverlay.classList.add('active');
+                
+                let remainingTime = duration / 1000;
+                const totalTime = remainingTime;
+                
+                // 更新倒计时
+                alertCountdown = setInterval(function() {
+                    remainingTime--;
+                    const progress = (remainingTime / totalTime) * 100;
+                    progressFill.style.width = progress + '%';
+                    customAlertTimer.textContent = remainingTime + '秒后关闭';
+                    
+                    if (remainingTime <= 0) {
+                        clearInterval(alertCountdown);
+                        hideCustomAlert();
+                    }
+                }, 1000);
+                
+                // 设置自动关闭
+                alertTimeout = setTimeout(function() {
+                    hideCustomAlert();
+                }, duration);
+            }
+            
+            function hideCustomAlert() {
+                customAlertOverlay.classList.remove('active');
+                if (alertTimeout) {
+                    clearTimeout(alertTimeout);
+                    alertTimeout = null;
+                }
+                if (alertCountdown) {
+                    clearInterval(alertCountdown);
+                    alertCountdown = null;
+                }
+            }
+            
+            // 刷新按钮点击事件
+            refreshButton.addEventListener('click', function() {
+                resetToMainMenu();
+            });
+            
             // 键盘事件监听
             document.addEventListener('keydown', function(e) {
+                // 如果按下F5或Ctrl+R，刷新页面
+                if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                    e.preventDefault();
+                    resetToMainMenu();
+                    return;
+                }
+                
                 handleKeyPress(e.key);
             });
             
@@ -448,11 +669,26 @@
             // 取消按钮点击事件
             cancelButton.addEventListener('click', hideWaitingBox);
             
+            // 自定义alert点击关闭
+            customAlertOverlay.addEventListener('click', function(e) {
+                if (e.target === customAlertOverlay) {
+                    hideCustomAlert();
+                }
+            });
+            
             function handleKeyPress(key) {
                 // 如果等待框显示，只允许取消操作
                 if (waitingOverlay.classList.contains('active')) {
                     if (key === 'Escape' || key === 'Enter') {
                         hideWaitingBox();
+                    }
+                    return;
+                }
+                
+                // 如果自定义alert显示，按任意键关闭
+                if (customAlertOverlay.classList.contains('active')) {
+                    if (key === 'Escape' || key === 'Enter' || key === ' ') {
+                        hideCustomAlert();
                     }
                     return;
                 }
@@ -471,6 +707,40 @@
                         goBack();
                         break;
                 }
+            }
+            
+            // 重置到主菜单
+            function resetToMainMenu() {
+                // 隐藏等待框
+                hideWaitingBox();
+                
+                // 停止所有播放
+                callStop();
+                
+                // 重置菜单状态
+                currentMenu = mainMenu;
+                selectedIndex = 0;
+                menuStack = [mainMenu];
+                
+                // 显示主菜单，隐藏所有子菜单
+                submenus.forEach(menu => {
+                    menu.classList.remove('active');
+                });
+                mainMenu.style.display = 'block';
+                
+                // 更新选择状态
+                updateSelection();
+                
+                // 显示自定义提示
+                showCustomAlert("已刷新重置");
+            }
+
+            function json2form(jsonObj) {
+                const formData = new FormData();
+                Object.keys(jsonObj).map((key) => {
+                    formData.append(key, jsonObj[key]);
+                });
+                return formData;
             }
             
             function callPlay(data, type, callback) {
@@ -614,7 +884,11 @@
                         }, 1000);
                     });
                     // 更新等待消息
-                    waitingMessage.textContent = `正在播放 ${text}`;
+                    let playType = {
+                        "erge" : "儿歌",
+                        "chengyu" : "成语故事"
+                    }
+                    waitingMessage.textContent = `正在播放 ${playType[type]}`;
                     
                     // 重置倒计时
                     countdownSeconds = 0;
@@ -625,7 +899,8 @@
                 } else {
                     // 不需要显示播放的
                     callPlay({}, type);
-                    alert("已执行");
+                    // 使用自定义alert替换原来的alert
+                    showCustomAlert("已执行");
                 }
             }
             

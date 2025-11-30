@@ -159,7 +159,7 @@ class ChatHandler(BaseHandler):
 
     def post(self):
         global conversation
-        logger.info([self.get_argument("validate", default=None), config.get("/server/validate"))])
+        logger.info([self.get_argument("validate", default=None), config.get("/server/validate")])
         if self.validate(self.get_argument("validate", default=None)):
             if self.get_argument("type") == "text":
                 query = self.get_argument("query")

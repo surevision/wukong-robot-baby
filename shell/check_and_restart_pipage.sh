@@ -9,8 +9,8 @@ eval "$(pyenv virtualenv-init -)"
 export PYTHON_BUILD_MIRROR_URL="https://registry.npmmirror.com/-/binary/python"
 export PYTHON_BUILD_MIRROR_URL_SKIP_CHECKSUM=1
 
-cd /home/admin/shell
-bash check_and_restart_wukong.sh
+# cd /home/admin/shell
+# bash check_and_restart_wukong.sh
 
 ProcNumber=$(ps -ef | grep -w page_server | wc -l)
 if [ ${ProcNumber} -le 1 ]; then

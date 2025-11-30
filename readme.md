@@ -30,3 +30,10 @@ typeguard==2.13.3
 ```
 
 到 https://www.paddlepaddle.org.cn/documentation/docs/zh/2.4/install/Tables.html#whl-release 自行下载对应的 paddlepaddle 库，不要用最新的，paddlespeech 最高只支持到 paddlepaddle 2.5.1
+
+
+薄膜键盘需要安装 xdotool
+
+```
+sudo apt-get install xdotool
+```

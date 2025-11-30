@@ -2,3 +2,4 @@ aiofiles
 python-multipart
 tornado
 requests
+keyboard==0.13.5

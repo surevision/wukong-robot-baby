@@ -54,8 +54,14 @@ class MainHandler(BaseHandler):
 
 class ErgeHandler(BaseHandler):
     def post(self):
-        control = self.get_body_argument("control", "")
-        name = self.get_body_argument("name", "")
+        post_data = self.request.body_arguments
+        print(post_data)
+        post_data = {x: post_data.get(x)[0].decode("utf-8") for x in post_data.keys()}
+        if not post_data:
+            post_data = self.request.body.decode('utf-8')
+            post_data = json.loads(post_data)
+        control = post_data.get("control", None)
+        name = post_data.get("name", None)
         url = f"http://localhost:5001/chat"
         data = {
             "type": "text",
@@ -72,14 +78,21 @@ class ErgeHandler(BaseHandler):
             else:
                 query = f"唱儿歌{name}"
         data["query"] = query
-        response = requests.post(url=url, data=json.dumps(data))
+        response = requests.post(url=url, params=data)
         response.raise_for_status()
         print(response.text)
 
 class ChengyuHandler(BaseHandler):
     def post(self):
-        control = self.get_body_argument("control", "")
-        name = self.get_body_argument("name", "")
+        post_data = self.request.body_arguments
+        print("post_data:-------------------")
+        print(post_data)
+        post_data = {x: post_data.get(x)[0].decode("utf-8") for x in post_data.keys()}
+        if not post_data:
+            post_data = self.request.body.decode('utf-8')
+            post_data = json.loads(post_data)
+        control = post_data.get("control", None)
+        name = post_data.get("name", None)
         url = f"http://localhost:5001/chat"
         data = {
             "type": "text",
@@ -96,14 +109,44 @@ class ChengyuHandler(BaseHandler):
             else:
                 query = f"讲成语故事{name}"
         data["query"] = query
-        response = requests.post(url=url, data=json.dumps(data))
+        response = requests.post(url=url, params=data)
         response.raise_for_status()
         print(response.text)
 
+
+class WeatherHandler(BaseHandler):
+    def post(self):
+        post_data = self.request.body_arguments
+        print(post_data)
+        post_data = {x: post_data.get(x)[0].decode("utf-8") for x in post_data.keys()}
+        if not post_data:
+            post_data = self.request.body.decode('utf-8')
+            post_data = json.loads(post_data)
+        control = post_data.get("control", None)
+        name = post_data.get("name", None)
+        url = f"http://localhost:5001/chat"
+        data = {
+            "type": "text",
+            "uuid": self.uuid,
+            "validate": self.key
+        }
+        query = "天气预报"
+        data["query"] = query
+        response = requests.post(url=url, params=data)
+        response.raise_for_status()
+        print(response.text)
+
+
 class IPCheckHandler(BaseHandler):
     def post(self):
-        control = self.get_body_argument("control", "")
-        name = self.get_body_argument("name", "")
+        post_data = self.request.body_arguments
+        print(post_data)
+        post_data = {x: post_data.get(x)[0].decode("utf-8") for x in post_data.keys()}
+        if not post_data:
+            post_data = self.request.body.decode('utf-8')
+            post_data = json.loads(post_data)
+        control = post_data.get("control", None)
+        name = post_data.get("name", None)
         url = f"http://localhost:5001/chat"
         data = {
             "type": "text",
@@ -113,24 +156,7 @@ class IPCheckHandler(BaseHandler):
         print(json.dumps(data))
         query = "本地IP"
         data["query"] = query
-        response = requests.post(url=url, data=json.dumps(data))
-        response.raise_for_status()
-        print(response.text)
-
-
-class WeatherHandler(BaseHandler):
-    def post(self):
-        control = self.get_body_argument("control", "")
-        name = self.get_body_argument("name", "")
-        url = f"http://localhost:5001/chat"
-        data = {
-            "type": "text",
-            "uuid": self.uuid,
-            "validate": self.key
-        }
-        query = "天气预报"
-        data["query"] = query
-        response = requests.post(url=url, data=json.dumps(data))
+        response = requests.post(url=url, params=data)
         response.raise_for_status()
         print(response.text)
 

@@ -51,7 +51,7 @@ class Plugin(AbstractPlugin):
                 re.compile("讲一个成语故事"),
                 re.compile("讲个成语故事")]
 
-        pattern_cert_1 = re.compile("讲成语故事(.*?)")
+        pattern_cert_1 = re.compile("讲成语故事(.+)")
         
         pattern_cert_ctr_1 = re.compile("下一个成语故事")
         pattern_cert_ctr_2 = re.compile("上一个成语故事")
@@ -70,7 +70,8 @@ class Plugin(AbstractPlugin):
         elif (re.match(pattern_cert_1, text) is not None):
             idx = -1
             i = 0
-            m = re.match(pattern_cert_1, text)
+            m = re.search(pattern_cert_1, text)
+            logger.info(f"查找成语故事：{m.group(1)}")
             for song in self.song_titles:
                 if song in m.group(1):
                     idx = i
@@ -109,15 +110,7 @@ class Plugin(AbstractPlugin):
             self.player.resume()
 
     def isValidImmersive(self, text, parsed):
-        
-        patterns = [re.compile("随便(.*?)成语故事"),
-                re.compile("播放(.*?)成语故事"),
-                re.compile("随机(.*?)成语故事"),
-                re.compile("讲一个成语故事"),
-                re.compile("讲个成语故事")]
-
-        pattern_cert_1 = re.compile("讲成语故事(.*?)")
-        
+                
         pattern_cert_ctr_1 = re.compile("下一个成语故事")
         pattern_cert_ctr_2 = re.compile("上一个成语故事")
         pattern_cert_ctr_3 = re.compile("停止成语故事")
@@ -131,6 +124,6 @@ class Plugin(AbstractPlugin):
                 re.compile("讲一个成语故事"),
                 re.compile("讲个成语故事")]
 
-        pattern_cert_1 = re.compile("讲成语故事(.*?)")
+        pattern_cert_1 = re.compile("讲成语故事(.+)")
 
         return any(re.match(pattern, text) is not None for pattern in patterns) or re.match(pattern_cert_1, text)
