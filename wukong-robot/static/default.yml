@@ -23,9 +23,11 @@ server:
     validate: 'f4bde2a342c7c75aa276f78b26cfbd8a'
 
 # 热词唤醒机制
+# asrpro 不适用灵敏度
 # 可选值：
 # porcupine
 # snowboy
+# asrpro
 detector: porcupine
 # 灵敏度
 sensitivity: 0.5
@@ -282,7 +284,7 @@ bing:
 
 # 百度 UNIT
 unit:
-    # 在 https://ai.baidu.com/unit 里注册创建一个机器人
+    # 在 https://ai.baidu.com/unit/v2/static/marketingclue 里注册创建一个机器人
     # 得到一个机器人 ID ，
     # 然后访问下面页面获取 API Key 和 Secret Key：
     # https://console.bce.baidu.com/ai/#/ai/unit/app/list
@@ -392,5 +394,13 @@ weather:
 # 现在时间
 calander:
     enable: true
+
+# 成语故事
+ChengyuPlayer:
+    path: "/home/admin/pi-page/static/chengyu/list.txt"  # 
+
+# 儿歌
+ErgePlayer:
+    path: "/home/admin/pi-page/static/erge/list.txt"  # 
 
 tts_parallel: 5
