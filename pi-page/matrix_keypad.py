@@ -68,6 +68,7 @@ class MatrixKeypad:
             'B': 'backspace', # 退格
             'C': 'space',   # 空格
             'D': 'enter',   # 回车
+            '5': 'enter',     # ESC
         }
         return key_mapping.get(key)
     
@@ -165,6 +166,7 @@ class MatrixKeypad:
         print("  2 -> 上箭头") 
         print("  4 -> 左箭头")
         print("  6 -> 右箭头")
+        print("  5 -> 回车")
         print("功能键:")
         print("  A -> ESC")
         print("  B -> 退格")

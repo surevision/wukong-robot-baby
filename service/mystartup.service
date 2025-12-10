@@ -1,0 +1,11 @@
+[Unit]
+Description=MyService
+After=network.target
+
+[Service]
+Type=oneshot
+User=admin
+ExecStart=sudo /home/admin/shell/startup.sh
+
+[Install]
+WantedBy=multi-user.target

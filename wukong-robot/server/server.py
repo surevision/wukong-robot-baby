@@ -164,6 +164,7 @@ class ChatHandler(BaseHandler):
             if self.get_argument("type") == "text":
                 query = self.get_argument("query")
                 uuid = self.get_argument("uuid")
+                logger.info(f"query {query}")
                 if query == "":
                     res = {"code": 1, "message": "query text is empty"}
                     self.write(json.dumps(res))
