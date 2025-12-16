@@ -11,7 +11,7 @@ def tts(text, server_url, api_key, speaker_id, length, noise, noisew, max, timeo
         "text": text,
         "id": speaker_id,
         "format": "wav",
-        "lang": "auto",
+        "lang": "zh",
         "length": length,
         "noise": noise,
         "noisew": noisew,

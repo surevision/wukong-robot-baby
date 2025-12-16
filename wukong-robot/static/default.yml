@@ -395,6 +395,9 @@ weather:
 calander:
     enable: true
 
+foodtime:
+    path: "/home/admin/.wukong/foodtime"
+
 # 成语故事
 ChengyuPlayer:
     path: "/home/admin/pi-page/static/chengyu/list.txt"  # 

@@ -112,7 +112,10 @@ class SoxPlayer(AbstractPlayer):
         if system == "Darwin":
             cmd = ["afplay", str(src)]
         else:
-            cmd = ["mpg123", str(src)]
+            if ".mp3" in str(src):
+                cmd = ["mpg123", str(src)]
+            else:
+                cmd = ["play", str(src)]
         logger.debug("Executing %s", " ".join(cmd))
         self.proc = subprocess.Popen(
             cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
