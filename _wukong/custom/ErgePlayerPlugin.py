@@ -44,20 +44,20 @@ class Plugin(AbstractPlugin):
         return MusicPlayer(self.song_list, self)
 
     def handle(self, text, parsed):
-        
-        patterns = [re.compile("随便(.*?)儿歌"),
-                re.compile("播放(.*?)儿歌"),
-                re.compile("随机(.*?)儿歌"),
-                re.compile("唱一个儿歌"),
-                re.compile("唱个儿歌"),
-                re.compile("唱一首儿歌"),
-                re.compile("唱首儿歌")]
+
+        patterns = [re.compile("(.*?)随便(.*?)儿歌(.*?)"),
+                re.compile("(.*?)播放(.*?)儿歌(.*?)"),
+                re.compile("(.*?)随机(.*?)儿歌(.*?)"),
+                re.compile("(.*?)唱一个儿歌(.*?)"),
+                re.compile("(.*?)唱个儿歌(.*?)"),
+                re.compile("(.*?)唱一首儿歌(.*?)"),
+                re.compile("(.*?)唱首儿歌(.*?)")]
 
         pattern_cert_1 = re.compile("唱儿歌(.*?)")
         
-        pattern_cert_ctr_1 = re.compile("下一首儿歌")
-        pattern_cert_ctr_2 = re.compile("上一首儿歌")
-        pattern_cert_ctr_3 = re.compile("停止儿歌")
+        pattern_cert_ctr_1 = re.compile("(.*?)下一首儿歌(.*?)")
+        pattern_cert_ctr_2 = re.compile("(.*?)上一首儿歌(.*?)")
+        pattern_cert_ctr_3 = re.compile("(.*?)停止儿歌(.*?)")
 
         if not self.player:
             self.player = self.init_music_player()
@@ -73,7 +73,7 @@ class Plugin(AbstractPlugin):
             i = 0
             m = re.match(pattern_cert_1, text)
             for song in self.song_titles:
-                if song in m.group(1):
+                if song in m.group(2):
                     idx = i
                     break
                 i += 1
@@ -110,15 +110,15 @@ class Plugin(AbstractPlugin):
 
     def isValidImmersive(self, text, parsed):
         
-        patterns = [re.compile("随便(.*?)儿歌"),
-                re.compile("播放(.*?)儿歌"),
-                re.compile("随机(.*?)儿歌"),
-                re.compile("唱一个儿歌"),
-                re.compile("唱个儿歌"),
-                re.compile("唱一首儿歌"),
-                re.compile("唱首儿歌")]
+        patterns = [re.compile("(.*?)随便(.*?)儿歌(.*?)"),
+                re.compile("(.*?)播放(.*?)儿歌(.*?)"),
+                re.compile("(.*?)随机(.*?)儿歌(.*?)"),
+                re.compile("(.*?)唱一个儿歌(.*?)"),
+                re.compile("(.*?)唱个儿歌(.*?)"),
+                re.compile("(.*?)唱一首儿歌(.*?)"),
+                re.compile("(.*?)唱首儿歌(.*?)")]
 
-        pattern_cert_1 = re.compile("唱儿歌(.*?)")
+        pattern_cert_1 = re.compile("(.*?)唱儿歌(.*?)")
         
         pattern_cert_ctr_1 = re.compile("下一首儿歌")
         pattern_cert_ctr_2 = re.compile("上一首儿歌")
@@ -128,14 +128,14 @@ class Plugin(AbstractPlugin):
 
 
     def isValid(self, text, parsed):
-        patterns = [re.compile("随便(.*?)儿歌"),
-                re.compile("播放(.*?)儿歌"),
-                re.compile("随机(.*?)儿歌"),
-                re.compile("唱一个儿歌"),
-                re.compile("唱个儿歌"),
-                re.compile("唱一首儿歌"),
-                re.compile("唱首儿歌")]
+        patterns = [re.compile("(.*?)随便(.*?)儿歌(.*?)"),
+                re.compile("(.*?)播放(.*?)儿歌(.*?)"),
+                re.compile("(.*?)随机(.*?)儿歌(.*?)"),
+                re.compile("(.*?)唱一个儿歌(.*?)"),
+                re.compile("(.*?)唱个儿歌(.*?)"),
+                re.compile("(.*?)唱一首儿歌(.*?)"),
+                re.compile("(.*?)唱首儿歌(.*?)")]
 
-        pattern_cert_1 = re.compile("唱儿歌(.*?)")
+        pattern_cert_1 = re.compile("(.*?)唱儿歌(.*?)")
 
         return any(re.match(pattern, text) is not None for pattern in patterns) or re.match(pattern_cert_1, text)

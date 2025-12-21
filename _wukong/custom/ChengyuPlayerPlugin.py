@@ -45,17 +45,17 @@ class Plugin(AbstractPlugin):
 
     def handle(self, text, parsed):
         
-        patterns = [re.compile("随便(.*?)成语故事"),
-                re.compile("播放(.*?)成语故事"),
-                re.compile("随机(.*?)成语故事"),
-                re.compile("讲一个成语故事"),
-                re.compile("讲个成语故事")]
+        patterns = [re.compile("(.*?)随便(.*?)成语故事(.*?)"),
+                re.compile("(.*?)播放(.*?)成语故事(.*?)"),
+                re.compile("(.*?)随机(.*?)成语故事(.*?)"),
+                re.compile("(.*?)讲一个成语故事(.*?)"),
+                re.compile("(.*?)讲个成语故事(.*?)")]
 
-        pattern_cert_1 = re.compile("讲成语故事(.+)")
+        pattern_cert_1 = re.compile("(.*?)讲成语故事(.+)")
         
-        pattern_cert_ctr_1 = re.compile("下一个成语故事")
-        pattern_cert_ctr_2 = re.compile("上一个成语故事")
-        pattern_cert_ctr_3 = re.compile("停止成语故事")
+        pattern_cert_ctr_1 = re.compile("(.*?)下一个成语故事(.*?)")
+        pattern_cert_ctr_2 = re.compile("(.*?)上一个成语故事(.*?)")
+        pattern_cert_ctr_3 = re.compile("(.*?)停止成语故事(.*?)")
 
         if not self.player:
             self.player = self.init_music_player()
@@ -73,7 +73,7 @@ class Plugin(AbstractPlugin):
             m = re.search(pattern_cert_1, text)
             logger.info(f"查找成语故事：{m.group(1)}")
             for song in self.song_titles:
-                if song in m.group(1):
+                if song in m.group(2):
                     idx = i
                     break
                 i += 1
@@ -111,19 +111,19 @@ class Plugin(AbstractPlugin):
 
     def isValidImmersive(self, text, parsed):
                 
-        pattern_cert_ctr_1 = re.compile("下一个成语故事")
-        pattern_cert_ctr_2 = re.compile("上一个成语故事")
-        pattern_cert_ctr_3 = re.compile("停止成语故事")
+        pattern_cert_ctr_1 = re.compile("(.*?)下一个成语故事(.*?)")
+        pattern_cert_ctr_2 = re.compile("(.*?)上一个成语故事(.*?)")
+        pattern_cert_ctr_3 = re.compile("(.*?)停止成语故事(.*?)")
 
         return re.match(pattern_cert_ctr_1, text) or re.match(pattern_cert_ctr_2, text) or re.match(pattern_cert_ctr_3, text)
 
     def isValid(self, text, parsed):
-        patterns = [re.compile("随便(.*?)成语故事"),
-                re.compile("播放(.*?)成语故事"),
-                re.compile("随机(.*?)成语故事"),
-                re.compile("讲一个成语故事"),
-                re.compile("讲个成语故事")]
+        patterns = [re.compile("(.*?)随便(.*?)成语故事(.*?)"),
+                re.compile("(.*?)播放(.*?)成语故事(.*?)"),
+                re.compile("(.*?)随机(.*?)成语故事(.*?)"),
+                re.compile("(.*?)讲一个成语故事(.*?)"),
+                re.compile("(.*?)讲个成语故事(.*?)")]
 
-        pattern_cert_1 = re.compile("讲成语故事(.+)")
+        pattern_cert_1 = re.compile("(.*?)讲成语故事(.+)")
 
         return any(re.match(pattern, text) is not None for pattern in patterns) or re.match(pattern_cert_1, text)

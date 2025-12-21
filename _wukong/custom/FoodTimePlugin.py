@@ -33,7 +33,7 @@ class Plugin(AbstractPlugin):
                         self.say(f"今天还没有记录过吃奶时间", cache=True)
                     else:
                         timestr = times[-1]
-                        self.say(f"上次吃奶时间是 {formatted_time}", cache=False)
+                        self.say(f"上次吃奶时间是 {timestr}", cache=False)
             else:
                 self.say(f"今天还没有记录过吃奶时间", cache=True)
         elif u"今天吃奶时间" in text:

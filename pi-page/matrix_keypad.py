@@ -19,7 +19,7 @@ class MatrixKeypad:
         
         # 定义行和列的GPIO引脚（BCM编号）
         self.rows = [21, 20, 16, 12]    # 行引脚
-        self.cols = [13, 6, 25, 29]    # 列引脚
+        self.cols = [13, 6, 25, 5]    # 列引脚
         
         # 定义键盘映射（4x4）
         self.key_map = [
