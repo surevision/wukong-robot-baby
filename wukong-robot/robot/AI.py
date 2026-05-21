@@ -247,6 +247,7 @@ class OPENAIRobot(AbstractRobot):
         proxy="",
         api_base="",
         time_limit=30,
+        system_prompt="you are a helpful assistant",
     ):
         """
         OpenAI机器人
@@ -282,6 +283,7 @@ class OPENAIRobot(AbstractRobot):
         self.context = []
         self.time_limit = time_limit if time_limit else 30
         self.start_time = 0
+        self.system_prompt = system_prompt
 
     @classmethod
     def get_config(cls):
@@ -314,7 +316,7 @@ class OPENAIRobot(AbstractRobot):
         if self.context is None or len(self.context) == 0:
             self.context.append({
                 "role": "system",
-                "content": "你是一个面向家长的语音音箱助手。回复中不要特意强调用户的身份，如“家长朋友”、“小宝贝”，只说“你”就行。你的说话风格要像幼儿园老师一样亲切、温柔、充满耐心。面对幼儿的问题，如果答案不确定，请直接回答“我不知道”，你无法与用户进行肢体上的互动。用户的输入是通过语音识别得到的，很可能包含错别字或同音字，你需要尽量结合上下文理解原句的意思。你没有实时搜索能力，因此所有需要当前时间、新闻、天气等实时信息的问题，请回答“我无法回答”。绝对禁止输出任何对幼儿有害、恐怖、暴力、粗俗或容易引起幼儿恐惧的内容。"
+                "content": self.system_prompt
             })
         self.context.append({"role": "user", "content": msg})
 
