@@ -3,6 +3,7 @@ import os
 import json
 import random
 import requests
+import time
 
 from uuid import getnode as get_mac
 from abc import ABCMeta, abstractmethod
@@ -245,6 +246,7 @@ class OPENAIRobot(AbstractRobot):
         prefix="",
         proxy="",
         api_base="",
+        time_limit=30,
     ):
         """
         OpenAI机器人
@@ -278,6 +280,8 @@ class OPENAIRobot(AbstractRobot):
         self.stop_ai = stop_ai
         self.api_base = api_base if api_base else "https://api.openai.com/v1/chat"
         self.context = []
+        self.time_limit = time_limit if time_limit else 30
+        self.start_time = 0
 
     @classmethod
     def get_config(cls):
@@ -289,11 +293,29 @@ class OPENAIRobot(AbstractRobot):
         从ChatGPT API获取回复
         :return: 回复
         """
+        # 检查time_limit
+        curr_time = time.time()
+        logger.info([time.time(), self.start_time, curr_time - self.start_time, self.time_limit])
+        if self.time_limit and curr_time - self.start_time < int(self.time_limit):
+            def generate():
+                yield "你问得太多啦，休息一下吧"
+            return generate
+        logger.info("do ai")
+        # 检查stop_ai
+        # logger.info([self.stop_ai, msg])
+        # if self.stop_ai and msg in self.stop_ai:
+        #     return None
 
+        self.start_time = curr_time
         msg = "".join(texts)
         msg = utils.stripPunctuation(msg)
         msg = self.prefix + msg  # 增加一段前缀
         logger.info("msg: " + msg)
+        if self.context is None or len(self.context) == 0:
+            self.context.append({
+                "role": "system",
+                "content": "你是一个面向家长的语音音箱助手。回复中不要特意强调用户的身份，如“家长朋友”、“小宝贝”，只说“你”就行。你的说话风格要像幼儿园老师一样亲切、温柔、充满耐心。面对幼儿的问题，如果答案不确定，请直接回答“我不知道”，你无法与用户进行肢体上的互动。用户的输入是通过语音识别得到的，很可能包含错别字或同音字，你需要尽量结合上下文理解原句的意思。你没有实时搜索能力，因此所有需要当前时间、新闻、天气等实时信息的问题，请回答“我无法回答”。绝对禁止输出任何对幼儿有害、恐怖、暴力、粗俗或容易引起幼儿恐惧的内容。"
+            })
         self.context.append({"role": "user", "content": msg})
 
         header = {
@@ -309,18 +331,20 @@ class OPENAIRobot(AbstractRobot):
 
         data = {"model": self.model, "messages": self.context, "stream": True}
         logger.info(f"使用模型：{self.model}，开始流式请求")
-        url = self.api_base + "/completions"
+        url = self.api_base
         if self.provider == 'azure':
             url = f"{self.api_base}/openai/deployments/{self.model}/chat/completions?api-version={self.api_version}"
         # 请求接收流式数据
         try:
-            response = requests.request(
-                "POST",
-                url,
-                headers=header,
-                json=data,
-                stream=True,
-                proxies={"https": self.openai.proxy},
+            from openai import OpenAI
+            print(f"url={url}")
+            client = OpenAI(
+                api_key=self.openai.api_key, # 替换为您的 API 密钥
+                base_url=url # 默认 OpenAI API 地址
+            )
+
+            stream = client.chat.completions.create(
+                model=data["model"], messages=data["messages"], stream=data["stream"]
             )
 
             def generate():
@@ -328,42 +352,36 @@ class OPENAIRobot(AbstractRobot):
                 one_message = {"role": "assistant", "content": stream_content}
                 self.context.append(one_message)
                 i = 0
-                for line in response.iter_lines():
-                    line_str = str(line, encoding="utf-8")
-                    if line_str.startswith("data:") and line_str[5:]:
-                        if line_str.startswith("data: [DONE]"):
-                            break
-                        line_json = json.loads(line_str[5:])
-                        if "choices" in line_json:
-                            if len(line_json["choices"]) > 0:
-                                choice = line_json["choices"][0]
-                                if "delta" in choice:
-                                    delta = choice["delta"]
-                                    if "role" in delta:
-                                        role = delta["role"]
-                                    elif "content" in delta:
-                                        delta_content = delta["content"]
-                                        i += 1
-                                        if i < 40:
-                                            logger.debug(delta_content, end="")
-                                        elif i == 40:
-                                            logger.debug("......")
-                                        one_message["content"] = (
-                                            one_message["content"] + delta_content
-                                        )
-                                        yield delta_content
-
-                    elif len(line_str.strip()) > 0:
-                        logger.debug(line_str)
-                        yield line_str
-
+                for chunk in stream:
+                    if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta.content is not None:
+                        print(chunk.choices[0].delta.content, end="")
+                        delta_content = chunk.choices[0].delta.content
+                        one_message["content"] = (
+                            one_message["content"] + delta_content
+                        )
+                        yield delta_content
+                    else:
+                        print("\n")
+                        one_message["content"] = stream_content
+                        yield "\n"
+                        i += 1
+                        if i == 20:  # 每20条消息，刷新一次上下文
+                            self.context.append(one_message)
+                            i = 0
+                            stream_content = str()
+                            one_message = {"role": "assistant", "content": stream_content}
+                            yield "\n"
+                print("stream end")
+                self.context.append(one_message)  # 最后一条消息，刷新一次上下文
+            return generate
         except Exception as e:
             ee = e
 
             def generate():
                 yield "request error:\n" + str(ee)
 
-        return generate
+            return generate
+        return None
 
     def chat(self, texts, parsed):
         """
