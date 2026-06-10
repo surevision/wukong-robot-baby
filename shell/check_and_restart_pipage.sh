@@ -22,4 +22,4 @@ echo "page_server already online"
 fi
 sleep 1s
 
-chromium-browser --incognito --kiosk --password-store=basic "http://localhost:6001"
+chromium-browser --incognito --kiosk --disable-features=Translate --password-store=basic "http://localhost:6001"
