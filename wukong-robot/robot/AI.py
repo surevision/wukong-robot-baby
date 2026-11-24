@@ -424,7 +424,7 @@ class OPENAIRobot(AbstractRobot):
                 )
             message = response.choices[0].message
             respond = message.content
-            self.context.append(message)
+            # self.context.append(message)  # 不记录上下文
             return respond
         except self.openai.error.InvalidRequestError:
             logger.warning("token超出长度限制，丢弃历史会话")
