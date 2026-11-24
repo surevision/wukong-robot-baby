@@ -35,7 +35,7 @@ class AsrPro():
         def __detected_callback():
             # 获得接收缓冲区字符
             count = self.ser.inWaiting()
-            recv = ""
+            recv = b""
             if count != 0:
                 # 读取内容并回显
                 recv = self.ser.read(count)
@@ -44,7 +44,7 @@ class AsrPro():
             # 清空接收缓冲区
             self.ser.flushInput()
             if GPIO.input(GPIO_PA_4) and len(recv) > 2:    # 用GPIO.input(引脚)函数来获取引脚电平状态
-                logger.info("HIGH!!!!!!!!!!!!!")
+                logger.info("listen HIGH!!!!!!!!!!!!!")
                 if (detected_callback):
                     detected_callback()
         GPIO.add_event_detect(GPIO_PA_4, GPIO.RISING, callback=__detected_callback, bouncetime=BOUNCETIME)
@@ -54,23 +54,24 @@ class AsrPro():
         last_time = time.time()
         recv = ""
         while True:
-            # 获得接收缓冲区字符
-            count = self.ser.inWaiting()
-            if count != 0:
-                # 读取内容并回显
-                recv = self.ser.read(count)
-                # self.ser.write(recv)
-                logger.info(recv)
-            # 清空接收缓冲区
-            self.ser.flushInput()
             if GPIO.input(GPIO_PA_4):    # 用GPIO.input(引脚)函数来获取引脚电平状态
-                logger.info("HIGH!!!!!!!!!!!!!")
-                logger.info([SERIAL_HELLO, recv, SERIAL_HELLO == recv])
+                # 获得接收缓冲区字符
+                count = self.ser.inWaiting()
+                if count != 0:
+                    # 读取内容并回显
+                    recv = self.ser.read(count)
+                    # self.ser.write(recv)
+                    logger.info(recv)
+                # 清空接收缓冲区
+                self.ser.flushInput()
+                # logger.info("loop HIGH!!!!!!!!!!!!!")
+                # logger.info([SERIAL_HELLO, recv, SERIAL_HELLO == recv])
                 if SERIAL_HELLO == recv:
-                    recv = ""
+                    recv = b""
                     logger.info([time.time(), last_time, time.time() - last_time])
                     if time.time() - last_time > BOUNCETIME:
                         last_time = time.time()
                         if (detected_callback):
                             detected_callback()
-            time.sleep(0.03)
+                    time.sleep(2)
+            time.sleep(0.05)

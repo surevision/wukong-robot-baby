@@ -303,10 +303,6 @@ class OPENAIRobot(AbstractRobot):
                 yield "你问得太多啦，休息一下吧"
             return generate
         logger.info("do ai")
-        # 检查stop_ai
-        # logger.info([self.stop_ai, msg])
-        # if self.stop_ai and msg in self.stop_ai:
-        #     return None
 
         self.start_time = curr_time
         msg = "".join(texts)
@@ -322,7 +318,6 @@ class OPENAIRobot(AbstractRobot):
 
         header = {
             "Content-Type": "application/json",
-            # "Authorization": "Bearer " + self.openai.api_key
         }
         if self.provider == 'openai':
             header['Authorization'] = "Bearer " + self.openai.api_key
@@ -331,51 +326,67 @@ class OPENAIRobot(AbstractRobot):
         else:
             raise ValueError("Please check your config file, OpenAiRobot's provider should be openai or azure.")
 
-        data = {"model": self.model, "messages": self.context, "stream": True}
-        logger.info(f"使用模型：{self.model}，开始流式请求")
         url = self.api_base
         if self.provider == 'azure':
             url = f"{self.api_base}/openai/deployments/{self.model}/chat/completions?api-version={self.api_version}"
-        # 请求接收流式数据
-        try:
-            from openai import OpenAI
-            print(f"url={url}")
-            client = OpenAI(
-                api_key=self.openai.api_key, # 替换为您的 API 密钥
-                base_url=url # 默认 OpenAI API 地址
-            )
+        else:
+            url = f"{self.api_base}/chat/completions"
 
-            stream = client.chat.completions.create(
-                model=data["model"], messages=data["messages"], stream=data["stream"]
-            )
+        # 请求体：直接用 reasoning_effort 关闭思考，stream=True 走流式
+        payload = {
+            "model": self.model,
+            "messages": self.context,
+            "stream": True,
+            "reasoning_effort": "none",
+        }
+        logger.info(f"使用模型：{self.model}，开始流式请求 url={url}")
+
+        try:
+            resp = requests.post(url, headers=header, json=payload, stream=True, timeout=300)
+            resp.raise_for_status()
 
             def generate():
                 stream_content = str()
                 one_message = {"role": "assistant", "content": stream_content}
                 self.context.append(one_message)
                 i = 0
-                for chunk in stream:
-                    if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta.content is not None:
-                        print(chunk.choices[0].delta.content, end="")
-                        delta_content = chunk.choices[0].delta.content
-                        one_message["content"] = (
-                            one_message["content"] + delta_content
-                        )
-                        yield delta_content
-                    else:
-                        print("\n")
-                        one_message["content"] = stream_content
-                        yield "\n"
-                        i += 1
-                        if i == 20:  # 每20条消息，刷新一次上下文
-                            self.context.append(one_message)
-                            i = 0
-                            stream_content = str()
-                            one_message = {"role": "assistant", "content": stream_content}
+                for line in resp.iter_lines(decode_unicode=False):
+                    if not line:
+                        continue
+                    try:
+                        line_str = line.decode("utf-8")
+                    except UnicodeDecodeError:
+                        continue
+                    if line_str.startswith("data: "):
+                        data_str = line_str[len("data: "):].strip()
+                        if data_str == "[DONE]":
+                            break
+                        try:
+                            chunk = json.loads(data_str)
+                        except json.JSONDecodeError:
+                            continue
+                        choices = chunk.get("choices") or []
+                        if choices and choices[0].get("delta", {}).get("content") is not None:
+                            delta_content = choices[0]["delta"]["content"]
+                            print(delta_content, end="")
+                            one_message["content"] = one_message["content"] + delta_content
+                            yield delta_content
+                        else:
+                            # 与原逻辑一致：无内容时 yield 换行并计数
+                            print("\n")
+                            one_message["content"] = stream_content
                             yield "\n"
+                            i += 1
+                            if i == 20:  # 每20条消息，刷新一次上下文
+                                self.context.append(one_message)
+                                i = 0
+                                stream_content = str()
+                                one_message = {"role": "assistant", "content": stream_content}
+                                yield "\n"
                 print("stream end")
                 self.context.append(one_message)  # 最后一条消息，刷新一次上下文
             return generate
+
         except Exception as e:
             ee = e
 
@@ -383,7 +394,6 @@ class OPENAIRobot(AbstractRobot):
                 yield "request error:\n" + str(ee)
 
             return generate
-        return None
 
     def chat(self, texts, parsed):
         """
@@ -395,12 +405,14 @@ class OPENAIRobot(AbstractRobot):
         msg = "".join(texts)
         msg = utils.stripPunctuation(msg)
         msg = self.prefix + msg  # 增加一段前缀
+        logger.info(self.provider)
         logger.info("msg: " + msg)
         try:
             respond = ""
             self.context.append({"role": "user", "content": msg})
             if self.provider == "openai":
-                response = self.openai.Completion.create(
+                logger.info(self.api_base)
+                response = self.openai.chat.completions.create(
                     model=self.model,
                     messages=self.context,
                     temperature=self.temperature,
@@ -409,8 +421,13 @@ class OPENAIRobot(AbstractRobot):
                     frequency_penalty=self.frequency_penalty,
                     presence_penalty=self.presence_penalty,
                     stop=self.stop_ai,
-                    api_base=self.api_base
+                    api_base=self.api_base,
+                    extra_body={
+                        "reasoning_effort": None,
+                        "think": False
+                    }
                 )
+                logger.info(response)
             else:
                 from openai import AzureOpenAI
                 client = AzureOpenAI(
@@ -431,7 +448,7 @@ class OPENAIRobot(AbstractRobot):
             self.context = []
             return self.chat(texts, parsed)
         except Exception:
-            logger.critical(
+            logger.error(
                 "openai robot failed to response for %r", msg, exc_info=True
             )
             return "抱歉，OpenAI 回答失败"
