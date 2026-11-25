@@ -332,12 +332,12 @@ class OPENAIRobot(AbstractRobot):
         else:
             url = f"{self.api_base}/chat/completions"
 
-        # 请求体：直接用 reasoning_effort 关闭思考，stream=True 走流式
+        # 请求体
         payload = {
             "model": self.model,
             "messages": self.context,
             "stream": True,
-            "reasoning_effort": "none",
+            "reasoning_effort": "none", # 关闭思考
         }
         logger.info(f"使用模型：{self.model}，开始流式请求 url={url}")
 
@@ -372,7 +372,6 @@ class OPENAIRobot(AbstractRobot):
                             one_message["content"] = one_message["content"] + delta_content
                             yield delta_content
                         else:
-                            # 与原逻辑一致：无内容时 yield 换行并计数
                             print("\n")
                             one_message["content"] = stream_content
                             yield "\n"
@@ -384,7 +383,8 @@ class OPENAIRobot(AbstractRobot):
                                 one_message = {"role": "assistant", "content": stream_content}
                                 yield "\n"
                 print("stream end")
-                self.context.append(one_message)  # 最后一条消息，刷新一次上下文
+                # self.context.append(one_message)  # 最后一条消息，刷新一次上下文
+                self.context = []
             return generate
 
         except Exception as e:
